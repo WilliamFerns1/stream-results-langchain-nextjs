@@ -16,20 +16,20 @@ export default function WeatherStream() {
     eventSource.onmessage = (event: MessageEvent) => {
       // Parse the JSON data
       const data: WeatherData = JSON.parse(event.data);
-      console.log(`Data: ${JSON.stringify(data)}`)
+      console.log(`Data: ${JSON.stringify(data)}`);
 
-      // If it's a log message, append it to the weatherData
-      if (data.log) {
-        console.log("Data Log: " + data.log);
-        setWeatherData([...weatherData, data]);
-      }
-
-      // If it's the final output, append it to the weatherData and close the connection
-      if (data.output) {
-        console.log("Output Log: " + data.output);
-        setWeatherData([...weatherData, data]);
-        eventSource.close();
-      }
+      // Update weatherData based on the type of data received
+      setWeatherData(prevWeatherData => {
+        if (data.log) {
+          console.log("Data Log: " + data.log);
+          return [...prevWeatherData, data];
+        } else if (data.output) {
+          console.log("Output Log: " + data.output);
+          eventSource.close();
+          return [...prevWeatherData, data];
+        }
+        return prevWeatherData;
+      });
     };
 
     return () => {
@@ -40,10 +40,7 @@ export default function WeatherStream() {
   return (
     <div>
       {weatherData.map((item, index) => (
-        <div key={index}>
-          {item.log && <p>{item.log}</p>}
-          {item.output && <p>{item.output}</p>}
-        </div>
+        <p key={index}>{item.log || item.output}</p>
       ))}
     </div>
   );

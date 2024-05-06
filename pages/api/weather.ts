@@ -69,23 +69,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Stream each chunk to the client
   for await (const chunk of stream) {
+    // res.write(`data: ${JSON.stringify(chunk)}\n\n`);
     // Send intermediate steps log to the client
     try {
 
       if (chunk.hasOwnProperty('intermediateSteps')) {
         const log = chunk.intermediateSteps[0]["action"].log
-        console.log("Log: " + log)
-        res.write(JSON.stringify({log: log}));
-      } 
+        const responseMessage = `data: ${JSON.stringify({ log: log })}\n\n`
+
+        console.log(`Log: ${log}`)
+        console.log(responseMessage)
+
+        res.write(responseMessage);
+      }
       else {
         if (chunk.hasOwnProperty('output')) {
           const output = chunk.output;
+          const responseMessage = `data: ${JSON.stringify({ output: output })}\n\n`
+
           console.log(`Output: ${output}`)
-          res.write(JSON.stringify({output: output}));
+          console.log(responseMessage)
+
+          res.write(responseMessage);
           res.end();
         }
       }
-    } catch (e){
+    } catch (e) {
       // If it's the final output, send it to the client and close the response
       console.log(`Error: ${e}`)
     }
