@@ -14,6 +14,9 @@ loadenv();
 const openaiAPIKey = process.env.OPENAI_API_KEY;
 const tavilyAPIKey = process.env.TAVILY_API_KEY;
 
+console.log(`OpenAI API Key: ${openaiAPIKey}`)
+console.log(`Tavily API Key: ${tavilyAPIKey}`)
+
 type Chunk = {
   intermediateSteps?: {
     action: {
@@ -66,15 +69,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Stream each chunk to the client
   for await (const chunk of stream) {
-    res.write(`data: ${JSON.stringify(chunk)}\n\n`);
     // Send intermediate steps log to the client
-    if (chunk.intermediateSteps && chunk.intermediateSteps[0].log) {
-      res.write(`data: ${chunk.intermediateSteps[0].log}\n\n`);
-    }
-    // If it's the final output, send it to the client and close the response
-    if (chunk.output) {
-      res.write(`data: ${JSON.stringify({ output: chunk.output })}\n\n`);
-      res.end();
+    try {
+
+      if (chunk.hasOwnProperty('intermediateSteps')) {
+        const log = chunk.intermediateSteps[0]["action"].log
+        console.log("Log: " + log)
+        res.write(JSON.stringify({log: log}));
+      } 
+      else {
+        if (chunk.hasOwnProperty('output')) {
+          const output = chunk.output;
+          console.log(`Output: ${output}`)
+          res.write(JSON.stringify({output: output}));
+          res.end();
+        }
+      }
+    } catch (e){
+      // If it's the final output, send it to the client and close the response
+      console.log(`Error: ${e}`)
     }
   }
 }

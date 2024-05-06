@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 
 type WeatherData = {
@@ -14,15 +16,18 @@ export default function WeatherStream() {
     eventSource.onmessage = (event: MessageEvent) => {
       // Parse the JSON data
       const data: WeatherData = JSON.parse(event.data);
+      console.log(`Data: ${JSON.stringify(data)}`)
 
       // If it's a log message, append it to the weatherData
       if (data.log) {
-        setWeatherData(prevData => [...prevData, { log: data.log }]);
+        console.log("Data Log: " + data.log);
+        setWeatherData([...weatherData, data]);
       }
 
       // If it's the final output, append it to the weatherData and close the connection
       if (data.output) {
-        setWeatherData(prevData => [...prevData, { output: data.output }]);
+        console.log("Output Log: " + data.output);
+        setWeatherData([...weatherData, data]);
         eventSource.close();
       }
     };
