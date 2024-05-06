@@ -39,7 +39,7 @@ export default function WeatherStream() {
 
   return (
     <div>
-      {weatherData.map((item, index) => (
+      {weatherData.map((item: WeatherData, index: number) => (
         <p key={index}>{item.log || item.output}</p>
       ))}
     </div>
